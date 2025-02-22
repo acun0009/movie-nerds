@@ -8,12 +8,12 @@
     <meta 
     http-equiv="Content-Security-Policy" 
     content="default-src 'self'; 
-    img-src 'self' https://random-data-api.com/ https://robohash.org/; 
+    img-src 'self' https://api.themoviedb.org; 
     script-src 'self' 'unsafe-inline'; 
     style-src 'self' https: https://fonts.googleapis.com;
     font-src *.gstatic.com;
     media-src 'none';
-    connect-src 'self' https://random-data-api.com;" />
+    connect-src 'self' https://api.themoviedb.org;" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +22,19 @@
 
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="./css/main.css">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Older Support -->
+    <meta name="theme-color" content="#5b52a5" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-status-bar" content="#5b52a5" />
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="./img/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="./img/favicon.svg" />
+    <link rel="shortcut icon" href="./img/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png" />
+
     <!-- JS Script -->
     <script type="module" src="./js/main.js"></script>
 </head>
@@ -103,12 +116,4 @@
         </a>
     </li>
 </template>
-
 </html>
-
-<!-- 
-1. figure out html
-2. figure out api
-3. attach api to search
-
--->
