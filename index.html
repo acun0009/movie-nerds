@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA</title>
+    <!-- CSP meta tags -->
+    <meta 
+    http-equiv="Content-Security-Policy" 
+    content="default-src 'self'; 
+    img-src 'self' https://random-data-api.com/ https://robohash.org/; 
+    script-src 'self' 'unsafe-inline'; 
+    style-src 'self' https: https://fonts.googleapis.com;
+    font-src *.gstatic.com;
+    media-src 'none';
+    connect-src 'self' https://random-data-api.com;" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="./css/main.css">
+    <!-- JS Script -->
+    <script type="module" src="./js/main.js"></script>
+</head>
+<body class="home">
+    <header class="navbar">
+        <div class="container">
+                <a href="#">
+                    <h1 class="navbar__headline">Movie Nerds</h1>
+                </a>
+            <nav class="navbar__nav">
+                <ul class="navbar__list" role="list">
+                    <li class="navbar__li"><a class="navbar__link" href="#rented">rented</a></li>
+                    <li class="navbar__li"><a class="navbar__link" href="#cart">cart</a></li>
+                </ul>
+            </nav>
+        </div> 
+    </header>
+    <main>
+        <div class="container">
+            <!-- HOME/SEARCH -->
+            <div id="home" class="page">
+                <section class="form">
+                    <div class="container">
+                    <!-- H2 -->
+                        <h2>Welcome!</h2>
+                        <form
+                            action="#search"
+                            method="GET"
+                            id="searchForm">
+            
+                            <label for="search">Search</label>
+                            <input type="search" placeholder="Search..." name="search" id="search">
+                            <button id="searchBtn">Search</button>
+                        </form>
+                    </div>
+                </section>
+                <section class="card">
+                    <div class="container">
+                        <ul class="card__list" id="movie-search-ul">
+                            <!-- RENDER MOVIES HERE -->
+                        </ul>
+                    </div>
+                </section>
+            </div>
+            <!-- CART -->
+            <div id="cart" class="page">
+                <h2>YOUR CART</h2>
+                <!-- card section -->
+            </div>
+            <!-- RENTED -->
+            <div id="rented" class="page">
+                <h2>RENTED</h2>
+                <!-- card section -->
+            </div>
+            <!-- VIEW/WATCH -->
+            <div id="view" class="page">
+                <!-- watch movie -->
+                <h2>NOW WATCHING...</h2>
+                <!-- insert video here -->
+                <a href="#home">Return Movie</a>
+            </div>
+        </div>
+    </main>
+</body>
+<template id="movie-template">
+    <li>
+        <a class="card" href="#details" >
+            <div class="card__img">
+                <!-- movie image -->
+                <img src="" alt="movie poster">
+            </div>
+            <div class="card__content">
+                <h3 class="card__title"><!-- movie title --></h3>
+                <p data-ref="release-date"><!-- release date --></p>
+                <p data-ref="description"><!-- description --></p>
+                <p data-ref="duration"><!-- duration --></p>
+                <a href="#">Rent</a>
+            </div>
+        </a>
+    </li>
+</template>
+
+</html>
+
+<!-- 
+1. figure out html
+2. figure out api
+3. attach api to search
+
+-->
