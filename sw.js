@@ -68,6 +68,7 @@ self.addEventListener('message', (ev) => {
         }
     }
     /** 'action' types
+     * addToSearch
      * addToCart
      * getCartList
      * addToRentals
@@ -75,6 +76,10 @@ self.addEventListener('message', (ev) => {
      * watchMovie
      */
     if ('action' in ev.data) {
+        if (ev.data.action === 'addToSearch') {
+            ev.waitUntil(caches.delete(searchCache)); // delete previous search results before adding to searchCache
+            addToSearch(ev.data.movies);
+        }
         if (ev.data.action === 'addToCart') {
             addToCart(ev.data.movie);
         }
@@ -84,10 +89,11 @@ self.addEventListener('message', (ev) => {
         }
         if (ev.data.action === 'addToRentals') {
             ev.waitUntil(addToRentals());
-            console.log('Movies rented! Cart is clear.')
+            console.log('Movies rented! Cart is clear.');
         }
         if (ev.data.action === 'getRentalsList') {
-
+            ev.waitUntil(getRentalMovies(ev));
+            console.log('Got movies in rentals!');
         }
        
         if (ev.data.action === 'watchMovie') {
@@ -95,6 +101,33 @@ self.addEventListener('message', (ev) => {
         }
     }
 });
+
+function addToSearch(movies) {
+    caches
+        .open(searchCache).then((cache) => {
+            let cachePromises = movies.map((movie) => {
+            let str = JSON.stringify(movie);
+            let filename = movie.id + ".json";
+            let file = new File([str], filename, { type: "application/json" });
+            let res = new Response(file, { 
+                status: 200, 
+                headers: { "content-type": "application/json" } 
+            });
+            let req = new Request(`/${filename}`);
+
+            return cache.put(req, res);
+        });
+        return Promise.all(cachePromises);
+    })
+    .then(() => {
+        console.log('Saved movies in search cache')
+        sendMessage({ 
+            action: "addToSearchSuccess", 
+            message: "Movies successfully added to search cache", 
+            movies 
+        });
+    });
+}
 
 function addToCart(movie) {
     let str = JSON.stringify(movie);
@@ -137,6 +170,20 @@ async function getCartOfMovies(ev) {
         let clientId = ev.source.id;
         let msg = {
             action: 'getCartOfMovies',
+            movies,
+        };
+        sendMessage(msg, clientId);
+    });
+}
+
+async function getRentalMovies(ev) {
+    caches.open(rentalCache).then(async (cache) => {
+        let requests = await cache.keys();
+        let responses = await Promise.all(requests.map((req) => cache.match(req)));
+        let movies = await Promise.all(responses.map((res) => res.json()))
+        let clientId = ev.source.id;
+        let msg = {
+            action: 'getRentalMovies',
             movies,
         };
         sendMessage(msg, clientId);

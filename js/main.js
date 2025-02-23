@@ -94,9 +94,14 @@ function gotMessage(ev) {
             // TODO dynamically update num movies in cart
         }
 
-        // if (ev.data.action === 'addToRentalsSuccess') {
-        //     resetCart();
-        // }
+        if (ev.data.action === 'getRentalMovies') {
+            let movies = ev.data.movies;
+            if(movies.length > 0) {
+                clearList('rentals');
+            } else {
+                showEmptyRentals();
+            }
+        }
     }
 }
 
@@ -119,20 +124,18 @@ function pageSpecific() {
     const id = document.body.className;
     switch (id) {
         case 'home':
-             console.log('home')
             // add listener to the form
             document.querySelector('#searchForm').addEventListener('submit', handleSearch);
             // add listnever to the movie cards
             document.querySelector('#movies-search-ul').addEventListener('click', handleAddCart);
             break;
         case 'cart':
-            console.log('cart')
             getCartList(); //get movies in cart
             document.querySelector('#cart-checkout').addEventListener('click', handleAddRentals);
             document.querySelector('#cart-checkout--rentals').addEventListener('click', showEmptyCart); //when user clicks to see rentals, clear cart
             break;
         case 'rentals':
-            console.log('rentals')
+            getRentalsList(); //get movie rentals
         default:
     }
 }
@@ -182,7 +185,12 @@ async function handleSearch(ev) {
             };
             movies.push(movieEntry);
         });
-        buildMovieCards(movies, 'search');
+        buildMovieCards(movies, 'search'); // builds movie cards
+        let msg = {
+            action: 'addToSearch',
+            movies
+        }; // send msg to sw to save search results to cache
+        sendMessage(msg);
     } catch(error) {
         console.error(`There was an error when fetching your data: ${error.status} ${error.message}`);
     }
@@ -271,12 +279,19 @@ function getCartList() {
     let msg = {
         action: 'getCartList',
     }
-    sendMessage(msg)
+    sendMessage(msg);
+}
+
+function getRentalsList() {
+    let msg = {
+        action: 'getRentalsList',
+    }
+    sendMessage(msg);
 }
 
 /* resets specific pages */
 function clearList(page = null) {
-    if (page = 'cart') {
+    if (page === 'cart') {
         // clears elements related to the cart page
         const h3 = document.querySelector(`#${page} > h3`);
         if(h3) h3.remove();
@@ -290,7 +305,6 @@ function clearList(page = null) {
         }
     }
     const parent = document?.querySelector(`#movies-${page}-ul`);
-    console.log(parent)
     parent.replaceChildren();
 }
 
@@ -314,14 +328,18 @@ function showEmptyCart() {
     }
 }
 
+/* shows if rentals has an empty state */
+function showEmptyRentals() {
+
+}
+
 /**
  * caching stretegies??? network first and revalidate (check if online first!!)
  * need
  * CACHES NEEDED
- * 1. search results
  * 4. movie images
  * 
- * 
+ *
  * OTHER
  * CART:
  * - need functional cart icon with logic!!
