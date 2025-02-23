@@ -54,22 +54,19 @@ self.addEventListener('fetch', (ev) => {
     // use a regular expression to check if the req.url matches any of the common image suffixes
     let isImg = req.url.match(/\.(jpg|jpeg|png|gif|ico|svg|webp)$/);
     let isAPI = url.hostname.includes('image.tmdb.org') || url.hostname.includes('api.themoviedb.org');
+    let isFont = url.hostname.includes('fonts.googleapis.com');
     let selfLocation = new URL(self.location);
 
-    // online check
-    if(self.isOnline) {
-        if (isImg) {
-            ev.respondWith(fetchAndCache(ev, imgCache));
-        } else if(isAPI) {
-            console.log(isAPI)
-            ev.respondWith(cacheFirstThenNetwork(ev));
-        } else if (selfLocation) {
-            console.log(selfLocation);
-            ev.respondWith(cacheFirstThenNetwork(ev));
-        } else {
-            ev.respondWith(networkOnly(ev));
-        }
-    } 
+    if (isImg) {
+        ev.respondWith(fetchAndCache(ev, imgCache));
+    } else if(isAPI || selfLocation || isFont) {
+        ev.respondWith(cacheFirstThenNetwork(ev));
+    } else {
+        ev.respondWith(fetch(ev.request));
+    }
+
+    // wasn't sure how to get it to properly work offline (google fonts kept failing)
+    // i couldn't figure out how to get the online status before the fetch requests started
 });
 
 self.addEventListener('message', (ev) => {
@@ -142,16 +139,20 @@ self.addEventListener('message', (ev) => {
 	}
 });
 
-function cacheOnly(ev) {
+async function cacheOnly(ev) {
 	//only the response from the cache
-	return caches.match(ev.request);
-}
+	CACHE_NAMES = [`${searchCache}`, `${cartCache}`, `${rentalCache}`, `${imgCache}`, `${appCache}`]
+    const cachedResponse = await Promise.all(
+        CACHE_NAMES.map((cacheName) =>
+            caches.open(cacheName).then((cache) => cache.match(ev.request))
+        )
+    ).then((responses) => responses.find((res) => res));
 
-function networkOnly(ev) {
-    //only the result of a fetch
-    console.log('in network only')
-    return fetch(ev.request);
-  }
+    if (cachedResponse) {
+        return cachedResponse; // return cached response if found
+    }
+    return new Response(null, { status: 404 });
+}
 
 function fetchAndCache(ev, cacheName) {
 	return fetch(ev.request).then(async (fetchResponse) => {
