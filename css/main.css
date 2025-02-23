@@ -425,3 +425,9 @@ main > .container {
 	}
 
 }
+
+video {
+	width: 80vw;
+	max-width: 90vw;
+	height: auto;
+  }
