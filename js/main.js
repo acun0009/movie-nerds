@@ -422,17 +422,3 @@ function showNumMoviesCart(num) {
     const cart = document.getElementById('show-num-items');
     cart.textContent = `cart (${num})`
 }
-
-/**
- * caching stretegies??? network first and revalidate (check if online first!!)
- * need
- * CACHES NEEDED
- * 4. movie images
- * 
- *
- * OTHER
- * CART:
- * - need functional cart icon with logic!!
- * - need to send msg to sw that updating cart needs to be relayed on all the open tabs
- * do i need the 'added to cart' to persist between searches???
- */

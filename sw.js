@@ -165,7 +165,6 @@ function fetchAndCache(ev, cacheName) {
 
 async function cacheFirstThenNetwork(ev) {
     CACHE_NAMES = [`${searchCache}`, `${cartCache}`, `${rentalCache}`, `${imgCache}`, `${appCache}`]
-    console.log('here in cache first')
     const cachedResponse = await Promise.all(
         CACHE_NAMES.map((cacheName) =>
             caches.open(cacheName).then((cache) => cache.match(ev.request))
@@ -173,7 +172,6 @@ async function cacheFirstThenNetwork(ev) {
     ).then((responses) => responses.find((res) => res));
 
     if (cachedResponse) {
-        console.log('heres data from the cache')
         return cachedResponse; // return cached response if found
     }
     // else return fetch response
