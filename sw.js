@@ -79,10 +79,12 @@ self.addEventListener('message', (ev) => {
             addToCart(ev.data.movie);
         }
         if (ev.data.action === 'getCartList') {
-            getCartOfMovies(ev);
+            ev.waitUntil(getCartOfMovies(ev));
+            console.log('Got movies in cart!');
         }
         if (ev.data.action === 'addToRentals') {
-            addToRentals(ev.data.movie);
+            ev.waitUntil(addToRentals());
+            console.log('Movies rented! Cart is clear.')
         }
         if (ev.data.action === 'getRentalsList') {
 
@@ -112,40 +114,32 @@ function addToCart(movie) {
         });
 }
 
-function addToRentals(movie) {
-    let str = JSON.stringify(movie);
-    let filename = movie.id + '.json';
-    let file = new File([str], filename, { type: 'application/json'});
-    let res = new Response(file, { status: 200, headers: { 'content-type': 'application/json'} });
-    let req = new Request(`/${filename}`);
+async function addToRentals() {
+    const cart = await caches.open(cartCache);
+    const rentals = await caches.open(rentalCache);
+    const cartRequests = await cart.keys();
 
-    caches
-        .open(rentalCache)
-        .then((cache) => {
-            return cache.put(req, res);
-        })
-        .then(() => {
-            console.log('Saved movie (rental)');
-            sendMessage({ action: 'addToRentalsSuccess', message: 'Movie successfully added to rentals', movie })
-        });
+    for (const request of cartRequests) {
+        const res = await cart.match(request);
+        if (res) {
+            await rentals.put(request, res.clone());
+            await cart.delete(request);
+        }
+    }
 }
 
-function getCartOfMovies(ev) {
-    console.log('in get cart of movies')
-    ev.waitUntil(
-        caches.open(cartCache).then(async (cache) => {
-            let requests = await cache.keys();
-            let responses = await Promise.all(requests.map((req) => cache.match(req)));
-            let movies = await Promise.all(responses.map((res) => res.json()))
-            console.log(movies)
-            let clientId = ev.source.id;
-            let msg = {
-                action: 'getCartOfMovies',
-                movies,
-            };
-            sendMessage(msg, clientId);
-        })
-    );
+async function getCartOfMovies(ev) {
+    caches.open(cartCache).then(async (cache) => {
+        let requests = await cache.keys();
+        let responses = await Promise.all(requests.map((req) => cache.match(req)));
+        let movies = await Promise.all(responses.map((res) => res.json()))
+        let clientId = ev.source.id;
+        let msg = {
+            action: 'getCartOfMovies',
+            movies,
+        };
+        sendMessage(msg, clientId);
+    });
 }
 
 function sendMessage(msg, client) {

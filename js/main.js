@@ -12,8 +12,6 @@ function init() {
     setUpWorker();
     addListeners();
     pageSpecific();
-    // let hash = location.hash ? location.hash : '#';
-    // showPage(hash); //maybe move this in pageSpecific???
 }
 
 /* Registers our service worker */
@@ -120,7 +118,7 @@ function pageSpecific() {
             console.log('cart')
             // get movies in cart
             getCartList();
-            document.querySelector('#movies-cart-ul').addEventListener('click', handleAddRental);
+            document.querySelector('#checkout').addEventListener('click', handleAddRentals);
             break;
         case 'rentals':
             console.log('rentals')
@@ -136,7 +134,7 @@ async function handleSearch(ev) {
     // clear search results first, if there are any
     let ul = document.querySelector('#movies-search-ul')
     if(ul.children.length > 0) {
-        clearSearchResults();
+        clearList('search');
     }
 
     try {
@@ -199,21 +197,15 @@ function handleAddCart(ev) {
     sendMessage(msg);
 }
 
-function handleAddRental(ev) {
+function handleAddRentals(ev) {
     console.log('IN: handleAddRental');
     ev.preventDefault();
-    let target = ev.target;
-    let card = target.closest('.card');
-    let id = card.dataset.ref;
-    let src = card.querySelector('img').src
-    let title = card.querySelector('.card__title').textContent;
-    let release_date = card.querySelector('[data-ref="release-date"] span').nextSibling.textContent.trim();
-    let rating = card.querySelector('[data-ref="rating"] span').nextSibling.textContent.trim();
-    let description = card.querySelector('[data-ref="description"] span').nextSibling.textContent.trim();
+    clearList('cart');
+    this.textContent = 'Go to Rentals';
+    //instead of this, were gonna have two anchor links, and hide the checkout vs go to rentals
 
     let msg = {
         action: 'addToRentals',
-        movie: { id, src, title, release_date, rating, description }
     };
     sendMessage(msg);
 }
@@ -222,7 +214,7 @@ function handleAddRental(ev) {
  * first arg: an array of movie objects
  * second arg: a string indication which page we are building cards for (possible values = 'search', 'cart', 'rentals')
  */
-function buildMovieCards(movies, page = 'search') {
+function buildMovieCards(movies, page = null) {
     console.log('IN: build movie cards')
     let moviesUl;
     if (page === 'search') {
@@ -251,7 +243,7 @@ function buildMovieCards(movies, page = 'search') {
             btn.href = '#cart'
         }
         if (page === 'cart') {
-            btn.textContent = 'Rent';
+            btn.textContent = 'Remove';
             btn.href = '#rent'
         }
         if (page === 'rentals') {
@@ -270,8 +262,9 @@ function getCartList() {
 }
 
 /* clears any previous search results */
-function clearSearchResults() {
-    const parent = document.querySelector('#movies-search-ul');
+function clearList(page = null) {
+    const parent = document?.querySelector(`#movies-${page}-ul`);
+    console.log(parent)
     parent.replaceChildren();
 }
 
@@ -280,19 +273,13 @@ function clearSearchResults() {
  * need
  * CACHES NEEDED
  * 1. search results
- * 2. cart items
- * 3. rented movies
  * 4. movie images
  * 5. app files
  * 
- * SPA SPECIFIC
- * - need to clear page whenever we navigate to a new one
  * 
  * OTHER
  * CART:
  * - need functional cart icon with logic!!
- * - have button to rent whole cart
  * - need to send msg to sw that updating cart needs to be relayed on all the open tabs
- * after renting whole cart, need to redirect
  * do i need the 'added to cart' to persist between searches???
  */
