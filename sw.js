@@ -68,23 +68,92 @@ self.addEventListener('message', (ev) => {
         }
     }
     /** 'action' types
+     * addToCart
      * getCartList
+     * addToRentals
      * getRentalsList
-     * rentMovies
      * watchMovie
      */
     if ('action' in ev.data) {
+        if (ev.data.action === 'addToCart') {
+            addToCart(ev.data.movie);
+        }
         if (ev.data.action === 'getCartList') {
-            console.log(ev.data.movie);
+            getCartOfMovies(ev);
+        }
+        if (ev.data.action === 'addToRentals') {
+            addToRentals(ev.data.movie);
         }
         if (ev.data.action === 'getRentalsList') {
 
         }
-        if (ev.data.action === 'rentMovies') {
+       
+        if (ev.data.action === 'watchMovie') {
 
         }
-        if (ev.data.action === 'watchMovie') {
-            
-        }
     }
-})
+});
+
+function addToCart(movie) {
+    let str = JSON.stringify(movie);
+    let filename = movie.id + '.json';
+    let file = new File([str], filename, { type: 'application/json'});
+    let res = new Response(file, { status: 200, headers: { 'content-type': 'application/json'} });
+    let req = new Request(`/${filename}`);
+
+    caches
+        .open(cartCache)
+        .then((cache) => {
+            return cache.put(req, res);
+        })
+        .then(() => {
+            console.log('Saved movie (cart)');
+            sendMessage({ action: 'addToCartSuccess', message: 'Movie successfully added to cart', movie })
+        });
+}
+
+function addToRentals(movie) {
+    let str = JSON.stringify(movie);
+    let filename = movie.id + '.json';
+    let file = new File([str], filename, { type: 'application/json'});
+    let res = new Response(file, { status: 200, headers: { 'content-type': 'application/json'} });
+    let req = new Request(`/${filename}`);
+
+    caches
+        .open(rentalCache)
+        .then((cache) => {
+            return cache.put(req, res);
+        })
+        .then(() => {
+            console.log('Saved movie (rental)');
+            sendMessage({ action: 'addToRentalsSuccess', message: 'Movie successfully added to rentals', movie })
+        });
+}
+
+function getCartOfMovies(ev) {
+    console.log('in get cart of movies')
+    ev.waitUntil(
+        caches.open(cartCache).then(async (cache) => {
+            let requests = await cache.keys();
+            let responses = await Promise.all(requests.map((req) => cache.match(req)));
+            let movies = await Promise.all(responses.map((res) => res.json()))
+            console.log(movies)
+            let clientId = ev.source.id;
+            let msg = {
+                action: 'getCartOfMovies',
+                movies,
+            };
+            sendMessage(msg, clientId);
+        })
+    );
+}
+
+function sendMessage(msg, client) {
+    //client is falsey means send to all
+  
+    clients.matchAll().then((clientList) => {
+      for (let client of clientList) {
+        client.postMessage(msg);
+      }
+    });
+}

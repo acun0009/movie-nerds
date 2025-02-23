@@ -8,7 +8,7 @@
     <meta 
     http-equiv="Content-Security-Policy" 
     content="default-src 'self'; 
-    img-src 'self' https://api.themoviedb.org; 
+    img-src 'self' https://api.themoviedb.org https://image.tmdb.org; 
     script-src 'self' 'unsafe-inline'; 
     style-src 'self' https: https://fonts.googleapis.com;
     font-src *.gstatic.com;
@@ -46,6 +46,7 @@
                 </a>
             <nav class="navbar__nav">
                 <ul class="navbar__list" role="list">
+                    <li class="navbar__li"><a class="navbar__link" href="#">home</a></li>
                     <li class="navbar__li"><a class="navbar__link" href="#rented">rented</a></li>
                     <li class="navbar__li"><a class="navbar__link" href="#cart">cart</a></li>
                 </ul>
@@ -71,9 +72,9 @@
                         </form>
                     </div>
                 </section>
-                <section class="card">
+                <section class="section-cards">
                     <div class="container">
-                        <ul class="card__list" id="movie-search-ul">
+                        <ul class="card__list" id="movies-search-ul">
                             <!-- RENDER MOVIES HERE -->
                         </ul>
                     </div>
@@ -83,11 +84,25 @@
             <div id="cart" class="page">
                 <h2>YOUR CART</h2>
                 <!-- card section -->
+                <section class="section-cards">
+                    <div class="container">
+                        <ul class="card__list" id="movies-cart-ul">
+                            <!-- RENDER MOVIES HERE -->
+                        </ul>
+                    </div>
+                </section>
             </div>
             <!-- RENTED -->
-            <div id="rented" class="page">
-                <h2>RENTED</h2>
+            <div id="rentals" class="page">
+                <h2>RENTALS</h2>
                 <!-- card section -->
+                <section class="section-cards">
+                    <div class="container">
+                        <ul class="card__list" id="movies-rentals-ul">
+                            <!-- RENDER MOVIES HERE -->
+                        </ul>
+                    </div>
+                </section>
             </div>
             <!-- VIEW/WATCH -->
             <div id="view" class="page">
@@ -99,21 +114,21 @@
         </div>
     </main>
 </body>
-<template id="movie-template">
+<template id="movies-template">
     <li>
-        <a class="card" href="#details" >
+        <div class="card">
             <div class="card__img">
                 <!-- movie image -->
                 <img src="" alt="movie poster">
             </div>
             <div class="card__content">
                 <h3 class="card__title"><!-- movie title --></h3>
-                <p data-ref="release-date"><!-- release date --></p>
-                <p data-ref="description"><!-- description --></p>
-                <p data-ref="duration"><!-- duration --></p>
-                <a href="#">Rent</a>
+                <p data-ref="release-date"><span>Released:</span><!-- release date --></p>
+                <p data-ref="rating"><span>Rating:</span><!-- rating --></p>
+                <p data-ref="description"><span>Description:</span><!-- description --></p>
+                <a id="movieBtn" href="#" class="btn"><!-- Button --></a>
             </div>
-        </a>
+        </div>
     </li>
 </template>
 </html>

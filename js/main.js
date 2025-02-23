@@ -73,7 +73,22 @@ function sendMessage(msg) {
 
 /* Listens to messages from our service worker */
 function gotMessage(ev) {
-//TODO
+    if ('action' in ev.data) {
+        if (ev.data.action === 'addToCartSuccess') {
+            let card = document.querySelector(`[data-ref="${ev.data.movie.id}"]`);
+            card.classList.add('in-cart'); //TODO style items in cart differently
+            const a = card.querySelector('#movieBtn');
+            const span = document.createElement('span');
+            span.textContent = 'Added to Cart!';
+            a.parentNode.replaceChild(span, a);
+        }
+
+        if(ev.data.action === 'getCartOfMovies') {
+            let movies = ev.data.movies;
+            buildMovieCards(movies, 'cart');
+            // TODO dynamically update num movies in cart
+        }
+    }
 }
 
 async function showPage(hash) {
@@ -97,14 +112,15 @@ function pageSpecific() {
         case 'home':
              console.log('home')
             // add listener to the form
-            document.querySelector('#searchForm').addEventListener('submit', handleSearch); //TODO
+            document.querySelector('#searchForm').addEventListener('submit', handleSearch);
             // add listnever to the movie cards
-            document.querySelector('#movies-search-ul').addEventListener('click', handleAddCart); //TODO main to card section
+            document.querySelector('#movies-search-ul').addEventListener('click', handleAddCart);
             break;
         case 'cart':
             console.log('cart')
             // get movies in cart
-            // getMoviesInCart(); //TODO
+            getCartList();
+            document.querySelector('#movies-cart-ul').addEventListener('click', handleAddRental);
             break;
         case 'rentals':
             console.log('rentals')
@@ -166,8 +182,10 @@ async function handleSearch(ev) {
 /* handles adding a movie into our cart */
 function handleAddCart(ev) {
     console.log('IN: handleAddCart');
+    ev.preventDefault();
     let target = ev.target;
     let card = target.closest('.card');
+    let id = card.dataset.ref;
     let src = card.querySelector('img').src
     let title = card.querySelector('.card__title').textContent;
     let release_date = card.querySelector('[data-ref="release-date"] span').nextSibling.textContent.trim();
@@ -175,8 +193,27 @@ function handleAddCart(ev) {
     let description = card.querySelector('[data-ref="description"] span').nextSibling.textContent.trim();
 
     let msg = {
-        action: 'getCartList',
-        movie: { src, title, release_date, rating, description }
+        action: 'addToCart',
+        movie: { id, src, title, release_date, rating, description }
+    };
+    sendMessage(msg);
+}
+
+function handleAddRental(ev) {
+    console.log('IN: handleAddRental');
+    ev.preventDefault();
+    let target = ev.target;
+    let card = target.closest('.card');
+    let id = card.dataset.ref;
+    let src = card.querySelector('img').src
+    let title = card.querySelector('.card__title').textContent;
+    let release_date = card.querySelector('[data-ref="release-date"] span').nextSibling.textContent.trim();
+    let rating = card.querySelector('[data-ref="rating"] span').nextSibling.textContent.trim();
+    let description = card.querySelector('[data-ref="description"] span').nextSibling.textContent.trim();
+
+    let msg = {
+        action: 'addToRentals',
+        movie: { id, src, title, release_date, rating, description }
     };
     sendMessage(msg);
 }
@@ -187,7 +224,16 @@ function handleAddCart(ev) {
  */
 function buildMovieCards(movies, page = 'search') {
     console.log('IN: build movie cards')
-    const moviesUl = document.querySelector('#movies-search-ul');
+    let moviesUl;
+    if (page === 'search') {
+        moviesUl = document.querySelector('#movies-search-ul');
+    } 
+    if (page === 'cart') {
+        moviesUl = document.querySelector('#movies-cart-ul');
+    }
+    if (page === 'rentals') {
+        moviesUl = document.querySelector('#movies-rentals-ul');
+    }
     const temp = document.querySelector('#movies-template');
 
     movies.forEach((movie) => {
@@ -216,6 +262,13 @@ function buildMovieCards(movies, page = 'search') {
     });
 }
 
+function getCartList() {
+    let msg = {
+        action: 'getCartList',
+    }
+    sendMessage(msg)
+}
+
 /* clears any previous search results */
 function clearSearchResults() {
     const parent = document.querySelector('#movies-search-ul');
@@ -241,4 +294,5 @@ function clearSearchResults() {
  * - have button to rent whole cart
  * - need to send msg to sw that updating cart needs to be relayed on all the open tabs
  * after renting whole cart, need to redirect
+ * do i need the 'added to cart' to persist between searches???
  */
