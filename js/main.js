@@ -81,11 +81,22 @@ function gotMessage(ev) {
             a.parentNode.replaceChild(span, a);
         }
 
-        if(ev.data.action === 'getCartOfMovies') {
+        if (ev.data.action === 'getCartOfMovies') {
             let movies = ev.data.movies;
-            buildMovieCards(movies, 'cart');
+            if(movies.length > 0) {
+                // if sw sends us an array with movies, build the cards
+                clearList('cart'); // clear first
+                buildMovieCards(movies, 'cart');
+            } else {
+                // else show empty cart state
+                showEmptyCart();
+            }
             // TODO dynamically update num movies in cart
         }
+
+        // if (ev.data.action === 'addToRentalsSuccess') {
+        //     resetCart();
+        // }
     }
 }
 
@@ -116,9 +127,9 @@ function pageSpecific() {
             break;
         case 'cart':
             console.log('cart')
-            // get movies in cart
-            getCartList();
-            document.querySelector('#checkout').addEventListener('click', handleAddRentals);
+            getCartList(); //get movies in cart
+            document.querySelector('#cart-checkout').addEventListener('click', handleAddRentals);
+            document.querySelector('#cart-checkout--rentals').addEventListener('click', showEmptyCart); //when user clicks to see rentals, clear cart
             break;
         case 'rentals':
             console.log('rentals')
@@ -197,12 +208,14 @@ function handleAddCart(ev) {
     sendMessage(msg);
 }
 
+/* Handles event when user clicks btn to rent entire cart */
 function handleAddRentals(ev) {
     console.log('IN: handleAddRental');
     ev.preventDefault();
-    clearList('cart');
-    this.textContent = 'Go to Rentals';
-    //instead of this, were gonna have two anchor links, and hide the checkout vs go to rentals
+    clearList('cart'); //clear cart page
+    this.classList.add('hidden'); //hide checkout button
+    const goToRentalsBtn = document.querySelector('#cart-checkout--rentals');
+    goToRentalsBtn.classList.remove('hidden'); // get button that navigates user to rentals and makes it visible
 
     let msg = {
         action: 'addToRentals',
@@ -261,11 +274,44 @@ function getCartList() {
     sendMessage(msg)
 }
 
-/* clears any previous search results */
+/* resets specific pages */
 function clearList(page = null) {
+    if (page = 'cart') {
+        // clears elements related to the cart page
+        const h3 = document.querySelector(`#${page} > h3`);
+        if(h3) h3.remove();
+        const cartEmptyBtn = document.querySelector('#cart-empty');
+        if(!cartEmptyBtn.classList.contains('hidden')) {
+            cartEmptyBtn.classList.add('hidden');
+        }
+        const checkoutBtn = document.querySelector('#cart-checkout');
+        if (checkoutBtn.classList.contains('hidden')) {
+            checkoutBtn.classList.remove('hidden');
+        }
+    }
     const parent = document?.querySelector(`#movies-${page}-ul`);
     console.log(parent)
     parent.replaceChildren();
+}
+
+/* shows if cart has an empty state */
+function showEmptyCart() {
+    console.log('here in show empty cart')
+    clearList('cart'); // clear first
+    const h2 = document.querySelector('#cart > h2');
+    const h3 = document.createElement('h3');
+    h3.textContent = 'Your cart is empty! Click home or the button below to search for movies to rent.'; // create empty state message
+    h2.insertAdjacentElement('afterend', h3); //append h3
+    const cartEmptyBtn = document.querySelector('#cart-empty');
+    cartEmptyBtn.classList.remove('hidden');
+    const checkoutBtn = document.querySelector('#cart-checkout');
+    const checkoutRentalsBtn = document.querySelector('#cart-checkout--rentals');
+    if (!checkoutBtn.classList.contains('hidden')) {
+        checkoutBtn.classList.add('hidden');
+    }
+    if (!checkoutRentalsBtn.classList.contains('hidden')) {
+        checkoutRentalsBtn.classList.add('hidden');
+    }
 }
 
 /**
@@ -274,7 +320,6 @@ function clearList(page = null) {
  * CACHES NEEDED
  * 1. search results
  * 4. movie images
- * 5. app files
  * 
  * 
  * OTHER

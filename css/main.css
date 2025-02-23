@@ -388,7 +388,7 @@ body {
 
 body.home #home,
 body.cart #cart,
-body.rented #rented {
+body.rentals #rentals {
 	display: block;
 }
 

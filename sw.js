@@ -126,6 +126,7 @@ async function addToRentals() {
             await cart.delete(request);
         }
     }
+    sendMessage({ action: 'addToRentalsSuccess', message: 'Movies successfully added to rentals' })
 }
 
 async function getCartOfMovies(ev) {

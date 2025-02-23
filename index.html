@@ -47,7 +47,7 @@
             <nav class="navbar__nav">
                 <ul class="navbar__list" role="list">
                     <li class="navbar__li"><a class="navbar__link" href="#">home</a></li>
-                    <li class="navbar__li"><a class="navbar__link" href="#rented">rented</a></li>
+                    <li class="navbar__li"><a class="navbar__link" href="#rentals">rented</a></li>
                     <li class="navbar__li"><a class="navbar__link" href="#cart">cart</a></li>
                 </ul>
             </nav>
@@ -84,12 +84,14 @@
             <div id="cart" class="page">
                 <h2>YOUR CART</h2>
                 <!-- card section -->
+                <a href="#" class="btn hidden" id="cart-empty">Search Movies</a>
                 <section class="section-cards">
                     <div class="container">
                         <ul class="card__list" id="movies-cart-ul">
                             <!-- RENDER MOVIES HERE -->
                         </ul>
-                        <a href="#rentals" class="btn" id="checkout">Checkout Cart</a>
+                        <a href="#cart" class="btn" id="cart-checkout">Checkout Cart</a>
+                        <a href="#rentals" class="btn hidden" id="cart-checkout--rentals">Go to Rentals</a>
                     </div>
                 </section>
             </div>
