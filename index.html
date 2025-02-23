@@ -12,7 +12,7 @@
     script-src 'self' 'unsafe-inline'; 
     style-src 'self' https: https://fonts.googleapis.com;
     font-src *.gstatic.com;
-    media-src 'none';
+    media-src 'self';
     connect-src 'self' https://api.themoviedb.org;" />
 
     <!-- Google Fonts -->
@@ -47,7 +47,7 @@
             <nav class="navbar__nav">
                 <ul class="navbar__list" role="list">
                     <li class="navbar__li"><a class="navbar__link" href="#">home</a></li>
-                    <li class="navbar__li"><a class="navbar__link" href="#rentals">rented</a></li>
+                    <li class="navbar__li"><a class="navbar__link" href="#rentals">rentals</a></li>
                     <li class="navbar__li"><a class="navbar__link" href="#cart">cart</a></li>
                 </ul>
             </nav>
@@ -83,8 +83,8 @@
             <!-- CART -->
             <div id="cart" class="page">
                 <h2>YOUR CART</h2>
-                <!-- card section -->
                 <a href="#" class="btn hidden" id="cart-empty">Search Movies</a>
+                <!-- card section -->
                 <section class="section-cards">
                     <div class="container">
                         <ul class="card__list" id="movies-cart-ul">
@@ -95,9 +95,10 @@
                     </div>
                 </section>
             </div>
-            <!-- RENTED -->
+            <!-- RENTALS -->
             <div id="rentals" class="page">
                 <h2>RENTALS</h2>
+                <a href="#" class="btn hidden" id="rentals-empty">Search Movies</a>
                 <!-- card section -->
                 <section class="section-cards">
                     <div class="container">
@@ -107,12 +108,14 @@
                     </div>
                 </section>
             </div>
-            <!-- VIEW/WATCH -->
-            <div id="view" class="page">
+            <!-- WATCH -->
+            <div id="watch" class="page">
                 <!-- watch movie -->
                 <h2>NOW WATCHING...</h2>
-                <!-- insert video here -->
-                <a href="#home">Return Movie</a>
+                <section class="section-video">
+                    <!-- insert video here -->
+                </section>
+                <a href="#rentals">Return Movie</a>
             </div>
         </div>
     </main>
@@ -133,5 +136,11 @@
             </div>
         </div>
     </li>
+</template>
+<template id="video-template">
+    <video width="640" height="360" controls>
+        <source src="movie.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+      </video>
 </template>
 </html>

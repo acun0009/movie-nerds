@@ -98,16 +98,22 @@ function gotMessage(ev) {
             let movies = ev.data.movies;
             if(movies.length > 0) {
                 clearList('rentals');
+                buildMovieCards(movies, 'rentals');
             } else {
                 showEmptyRentals();
             }
+        }
+
+        if (ev.data.action === 'getWatchMovieSuccess') {
+            let movie = ev.data.movie;
+            actuallyWatchTheMovie(movie);
         }
     }
 }
 
 async function showPage(hash) {
     // if hash is not one of our preset IDs,
-    if(!['#', '#cart', '#rentals'].includes(hash)) {
+    if(!['#', '#cart', '#rentals', '#watch'].includes(hash)) {
         // replace the current history stack with '#' (home),
         history.replaceState(null, '', '#');
         // navigate to it
@@ -133,13 +139,29 @@ function pageSpecific() {
             getCartList(); //get movies in cart
             document.querySelector('#cart-checkout').addEventListener('click', handleAddRentals);
             document.querySelector('#cart-checkout--rentals').addEventListener('click', showEmptyCart); //when user clicks to see rentals, clear cart
+            document.querySelector('#movies-cart-ul').addEventListener('click', handleRemoveFromCart);
             break;
         case 'rentals':
             getRentalsList(); //get movie rentals
+            // add listener for movie cards
+            document.querySelector('#movies-rentals-ul').addEventListener('click', handleWatchMovie);
+        case 'watch':
+            document.addEventListener('click', handleRentalReturn); //listener for when a user returns a movie
+            window.addEventListener('orientationchange', detectOrientation) // add listener for screen orientation
         default:
     }
 }
 
+function detectOrientation(ev) {
+    console.log('Orientation changed');
+  if (screen.orientation.type === 'portrait-primary') {
+    console.log('Portrait mode');
+  } else if (screen.orientation.type === 'landscape-primary') {
+    console.log('Landscape mode');
+  }
+}
+
+/* handles search to TMDB API */
 async function handleSearch(ev) {
     ev.preventDefault();
     console.log('IN: handleSearch')
@@ -231,6 +253,33 @@ function handleAddRentals(ev) {
     sendMessage(msg);
 }
 
+function handleWatchMovie(ev) {
+    console.log('IN: handleWatchMovie');
+    let target = ev.target;
+    let card = target.closest('.card');
+    let id = card.dataset.ref;
+
+    let msg = {
+        action: 'watchMovie',
+        movie_id: id
+    };
+    sendMessage(msg);
+}
+
+function actuallyWatchTheMovie(movie) {
+    // clear movie section
+    const parent = document.querySelector('.section-video');
+    parent.replaceChildren();
+
+    const temp = document.querySelector('#video-template');
+    const clone = temp.content.cloneNode(true);
+    clone.querySelector('source').src = './img/placeholder.mp4'
+    const section = document.querySelector('.section-video');
+    section.appendChild(clone);
+    document.querySelector('#watch > a').setAttribute('data-ref', `${movie.id}`)
+}
+
+
 /** Builds movie cards using <template>
  * first arg: an array of movie objects
  * second arg: a string indication which page we are building cards for (possible values = 'search', 'cart', 'rentals')
@@ -265,7 +314,7 @@ function buildMovieCards(movies, page = null) {
         }
         if (page === 'cart') {
             btn.textContent = 'Remove';
-            btn.href = '#rent'
+            btn.href = '#cart'
         }
         if (page === 'rentals') {
             btn.textContent = 'Watch Now';
@@ -289,12 +338,34 @@ function getRentalsList() {
     sendMessage(msg);
 }
 
+function handleRemoveFromCart(ev) {
+    let target = ev.target;
+    let card = target.closest('.card');
+    let id = card.dataset.ref;
+    let msg = {
+        action: 'removeFromCart',
+        movie_id: id
+    }
+    sendMessage(msg)
+}
+
+function handleRentalReturn(ev) {
+    let target = ev.target;
+    let id = target.dataset.ref
+    let msg = {
+        action: 'returnMovie',
+        movie_id: id
+    }
+    sendMessage(msg)
+}
+
 /* resets specific pages */
 function clearList(page = null) {
+    const h3 = document.querySelector(`#${page} > h3`);
+    if(h3) h3.remove();
+
     if (page === 'cart') {
         // clears elements related to the cart page
-        const h3 = document.querySelector(`#${page} > h3`);
-        if(h3) h3.remove();
         const cartEmptyBtn = document.querySelector('#cart-empty');
         if(!cartEmptyBtn.classList.contains('hidden')) {
             cartEmptyBtn.classList.add('hidden');
@@ -304,13 +375,19 @@ function clearList(page = null) {
             checkoutBtn.classList.remove('hidden');
         }
     }
+    if(page === 'rentals') {
+        //clears elements related to the rentals page
+        const rentalsEmptyBtn = document.querySelector('#rentals-empty');
+        if(!rentalsEmptyBtn.classList.contains('hidden')) {
+            rentalsEmptyBtn.classList.add('hidden');
+        }
+    }
     const parent = document?.querySelector(`#movies-${page}-ul`);
     parent.replaceChildren();
 }
 
 /* shows if cart has an empty state */
 function showEmptyCart() {
-    console.log('here in show empty cart')
     clearList('cart'); // clear first
     const h2 = document.querySelector('#cart > h2');
     const h3 = document.createElement('h3');
@@ -330,7 +407,13 @@ function showEmptyCart() {
 
 /* shows if rentals has an empty state */
 function showEmptyRentals() {
-
+    clearList('rentals'); //clear first
+    const h2 = document.querySelector('#rentals > h2');
+    const h3 = document.createElement('h3');
+    h3.textContent = 'You have no rentals! Click home or the button below to search for movies to rent.'; // create empty state message
+    h2.insertAdjacentElement('afterend', h3);
+    const rentalsEmptyBtn = document.querySelector('#rentals-empty');
+    rentalsEmptyBtn.classList.remove('hidden');
 }
 
 /**

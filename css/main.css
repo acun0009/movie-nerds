@@ -388,7 +388,8 @@ body {
 
 body.home #home,
 body.cart #cart,
-body.rentals #rentals {
+body.rentals #rentals,
+body.watch #watch {
 	display: block;
 }
 
