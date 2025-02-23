@@ -48,7 +48,7 @@
                 <ul class="navbar__list" role="list">
                     <li class="navbar__li"><a class="navbar__link" href="#">home</a></li>
                     <li class="navbar__li"><a class="navbar__link" href="#rentals">rentals</a></li>
-                    <li class="navbar__li"><a class="navbar__link" href="#cart">cart</a></li>
+                    <li class="navbar__li"><a id="show-num-items" class="navbar__link" href="#cart">cart</a></li>
                 </ul>
             </nav>
         </div> 
@@ -66,9 +66,9 @@
                             method="GET"
                             id="searchForm">
             
-                            <label for="search">Search</label>
-                            <input type="search" placeholder="Search..." name="search" id="search">
-                            <button id="searchBtn">Search</button>
+                            <label for="search"></label>
+                            <input type="search" placeholder="Eg. Shrek" id="search">
+                            <button id="searchBtn" class="btn">Get movies</button>
                         </form>
                     </div>
                 </section>
@@ -115,7 +115,7 @@
                 <section class="section-video">
                     <!-- insert video here -->
                 </section>
-                <a href="#rentals">Return Movie</a>
+                <a href="#rentals" class="btn">Return Movie</a>
             </div>
         </div>
     </main>

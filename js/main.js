@@ -23,6 +23,7 @@ async function setUpWorker() {
             });
             if (registration.active) {
                 navigator.serviceWorker.addEventListener('message', gotMessage);
+                sendMessage({ type: 'NETWORK_STATUS', isOnline })
             }
         } catch(error) {
             console.error(`Registration failed: ${error}`);
@@ -87,6 +88,7 @@ function gotMessage(ev) {
                 // if sw sends us an array with movies, build the cards
                 clearList('cart'); // clear first
                 buildMovieCards(movies, 'cart');
+                showNumMoviesCart(movies.length);
             } else {
                 // else show empty cart state
                 showEmptyCart();
@@ -414,6 +416,11 @@ function showEmptyRentals() {
     h2.insertAdjacentElement('afterend', h3);
     const rentalsEmptyBtn = document.querySelector('#rentals-empty');
     rentalsEmptyBtn.classList.remove('hidden');
+}
+
+function showNumMoviesCart(num) {
+    const cart = document.getElementById('show-num-items');
+    cart.textContent = `cart (${num})`
 }
 
 /**

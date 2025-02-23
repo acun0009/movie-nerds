@@ -22,8 +22,6 @@ const appFiles = [
 ];
 
 self.addEventListener('install', (ev) => {
-	// we can use ev.waitUntil() here
-	//cache.addAll() is the same as fetch and put
 	ev.waitUntil(
 		caches.open(appCache).then((cache) => {
 			cache.addAll(appFiles);
@@ -51,20 +49,27 @@ self.addEventListener('activate', (ev) => {
 
 self.addEventListener('fetch', (ev) => {
 	console.log(`fetch request for ${ev.request.url}`);
+	const req = ev.request;
+    let url = new URL(ev.request.url); //turn the url string into a URL object
+    // use a regular expression to check if the req.url matches any of the common image suffixes
+    let isImg = req.url.match(/\.(jpg|jpeg|png|gif|ico|svg|webp)$/);
+    let isAPI = url.hostname.includes('image.tmdb.org') || url.hostname.includes('api.themoviedb.org');
+    let selfLocation = new URL(self.location);
 
-	// look through cache first!!!
-	// look up cacheing strategies
-	// ev.respondWith(
-	//     caches.match(ev.request).then( cacheRes => {
-	//         return cacheRes || fetch(ev.request)
-	//         .then(fetchResponse => {
-	//             let type = fetchResponse.headers.get('content-type');
-
-	//         })
-	//     })
-	// )
-	// we respond with the response
-	// ev.respondWith( fetch(ev.request) )
+    // online check
+    if(self.isOnline) {
+        if (isImg) {
+            ev.respondWith(fetchAndCache(ev, imgCache));
+        } else if(isAPI) {
+            console.log(isAPI)
+            ev.respondWith(cacheFirstThenNetwork(ev));
+        } else if (selfLocation) {
+            console.log(selfLocation);
+            ev.respondWith(cacheFirstThenNetwork(ev));
+        } else {
+            ev.respondWith(networkOnly(ev));
+        }
+    } 
 });
 
 self.addEventListener('message', (ev) => {
@@ -83,7 +88,7 @@ self.addEventListener('message', (ev) => {
 	 * addToRentals
 	 * getRentalsList
 	 * watchMovie
-     * returnMovie
+	 * returnMovie
 	 */
 	if ('action' in ev.data) {
 		if (ev.data.action === 'addToSearch') {
@@ -130,15 +135,52 @@ self.addEventListener('message', (ev) => {
 			);
 		}
 
-        if(ev.data.action === 'returnMovie') {
-            ev.waitUntil(removeReqFromRentals(ev.data.movie_id));
-            ev.waitUntil(getRentalMovies(ev));
-        }
+		if (ev.data.action === 'returnMovie') {
+			ev.waitUntil(removeReqFromRentals(ev.data.movie_id));
+			ev.waitUntil(getRentalMovies(ev));
+		}
 	}
 });
 
+function cacheOnly(ev) {
+	//only the response from the cache
+	return caches.match(ev.request);
+}
+
+function networkOnly(ev) {
+    //only the result of a fetch
+    console.log('in network only')
+    return fetch(ev.request);
+  }
+
+function fetchAndCache(ev, cacheName) {
+	return fetch(ev.request).then(async (fetchResponse) => {
+		await caches.open(cacheName).then((cache) => {
+			cache.put(ev.request, fetchResponse.clone());
+		});
+		return fetchResponse;
+	});
+}
+
+async function cacheFirstThenNetwork(ev) {
+    CACHE_NAMES = [`${searchCache}`, `${cartCache}`, `${rentalCache}`, `${imgCache}`, `${appCache}`]
+    console.log('here in cache first')
+    const cachedResponse = await Promise.all(
+        CACHE_NAMES.map((cacheName) =>
+            caches.open(cacheName).then((cache) => cache.match(ev.request))
+        )
+    ).then((responses) => responses.find((res) => res));
+
+    if (cachedResponse) {
+        console.log('heres data from the cache')
+        return cachedResponse; // return cached response if found
+    }
+    // else return fetch response
+    return fetch(ev.request);
+}
+
 function removeReqFromRentals(movieId) {
-    const req = new Request(`/${movieId}.json`);
+	const req = new Request(`/${movieId}.json`);
 
 	caches.open(rentalCache).then((cache) => {
 		cache.delete(req).then((success) => {
